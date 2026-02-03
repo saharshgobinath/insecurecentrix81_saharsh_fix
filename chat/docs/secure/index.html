@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Chat</title>
+    <link rel="stylesheet" href="styles.css?v=1">
+  </head>
+  <body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-icon"></div>
+        <div class="loading-title">Secure Chat</div>
+        <div class="loading-status" id="loading-status">Connecting to server...</div>
+        <div class="loading-progress">
+            <div class="loading-progress-bar" id="loading-progress-bar"></div>
+        </div>
+    </div>
+    
+    <!-- Login/Signup View -->
+    <div class="container" id="auth-view">
+      <div class="header">
+        <h1><a href="https://securecentrix81.github.io/chat/secure/admins-only" id="adminURL" title="Click for Admin Login">Admin Login</a></h1>
+      </div>
+      
+      <div class="auth-container">
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="login-tab">Login</button>
+          <button class="auth-tab" id="signup-tab">Sign Up</button>
+        </div>
+
+        <!-- Login Form -->
+        <div class="auth-form" id="login-form">
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input type="text" class="form-input" id="login-username" placeholder="Enter username">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <div class="password-wrapper">
+              <input type="password" class="form-input" id="login-password" placeholder="Enter password">
+              <button type="button" class="password-toggle" onclick="togglePassword('login-password', this)">👁️</button>
+            </div>
+          </div>
+          <div class="form-group captcha-group">
+            <label class="form-label">🤖 Prove you're human</label>
+            <div class="captcha-display" id="login-captcha-display">Loading captcha...</div>
+            <input type="text" class="form-input" id="login-captcha-input" placeholder="Type the text above">
+            <button type="button" class="btn-link captcha-refresh" id="login-captcha-refresh">🔄 New captcha</button>
+          </div>
+          <div id="login-feedback" class="feedback"></div>
+          <button class="btn-primary" id="login-btn">Login</button>
+          <button class="btn-link" id="forgot-password-btn">Forgot password?</button>
+        </div>
+        
+        <!-- Signup Form -->
+        <div class="auth-form hidden" id="signup-form">
+          <div class="warning-box">
+            ⚠️ <strong>Important:</strong> DO NOT reuse passwords from other sites
+          </div>
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input type="text" class="form-input" id="signup-username" placeholder="Choose a username">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <div class="password-wrapper">
+              <input type="password" class="form-input" oninput="onPassInput()" id="signup-password" placeholder="Choose a password">
+              <button type="button" class="password-toggle" onclick="togglePassword('signup-password', this)">👁️</button>
+            </div>
+          </div>
+          <div id="password-rules-container">
+            <div id="password-rules"></div>
+          </div><br>
+          <div id="password-help-container">
+            <button id="password-help" class="btn-link">Need help creating a password?</button>
+          </div>
+          <div id="secret-text"></div>
+          <div class="form-group captcha-group">
+            <label class="form-label">🤖 Prove you're human</label>
+            <div class="captcha-display" id="signup-captcha-display">Loading captcha...</div>
+            <input type="text" class="form-input" id="signup-captcha-input" placeholder="Type the text above">
+            <button type="button" class="btn-link captcha-refresh" id="signup-captcha-refresh">🔄 New captcha</button>
+          </div>
+          <div id="signup-feedback" class="feedback"></div>
+          <button class="btn-primary" id="signup-btn">Create Account</button>
+        </div>
+        <!-- Forgot Password Form -->
+        <div class="auth-form hidden" id="forgot-form">
+          <h3 class="form-title">🔑 Password Recovery</h3>
+          <div class="form-group">
+            <label class="form-label">Enter your username</label>
+            <input type="text" class="form-input" id="forgot-username" placeholder="Your username">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Do you remember your password?</label>
+            <div class="btn-group">
+              <button class="btn-secondary" id="remember-yes">Yes</button>
+              <button class="btn-secondary" id="remember-no">No</button>
+            </div>
+          </div>
+          <div class="form-group hidden" id="forgot-password-group">
+            <label class="form-label">Enter your password</label>
+            <input type="text" class="form-input" id="forgot-password-input" placeholder="Your password attempt">
+            <button class="btn-primary" id="recover-btn">Recover Password</button>
+          </div>
+          <div id="forgot-feedback" class="feedback"></div>
+          <button class="btn-link" id="back-to-login">← Back to Login</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Home View -->
+    <div class="container hidden" id="home-view">
+      <div class="header">
+        <div style="display: flex; align-items: center;">
+          <h1>🏠 Home</h1>
+          <span class="user-badge" id="current-user-badge">Anonymous</span>
+        </div>
+        <button class="btn-clear" id="logout-btn">Logout</button>
+      </div>
+
+      <div class="home-menu">
+        <div class="menu-card" id="join-room-card">
+          <div class="menu-icon">💬</div>
+          <div class="menu-title">Join Room</div>
+          <div class="menu-desc">Enter a chat room</div>
+        </div>
+        <div class="menu-card" id="settings-card">
+          <div class="menu-icon">⚙️</div>
+          <div class="menu-title">Settings</div>
+          <div class="menu-desc">Manage your account</div>
+        </div>
+      </div>
+
+      <!-- Join Room Panel -->
+      <div class="panel hidden auth-form" id="join-room-panel">
+        <h3 class="panel-title">Join Chat Room</h3>
+        <div class="form-group">
+          <label class="form-label">Room Name</label>
+          <input type="text" class="form-input" id="room-name" placeholder="Enter room name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Room Password</label>
+          <div class="password-wrapper">
+            <input type="password" class="form-input" id="room-password" placeholder="Enter room password">
+            <button type="button" class="password-toggle" onclick="togglePassword('room-password', this)">👁️</button>
+          </div>
+        </div>
+        <div id="room-feedback" class="feedback"></div>
+        <div class="btn-group">
+          <button class="btn-secondary" id="cancel-room-btn">Cancel</button>
+          <button class="btn-primary" id="join-room-btn">Join/Create Room</button>
+        </div>
+        <div id="room-list-container">
+          <div class="room-list-header">
+            <span>Available Rooms</span>
+            <button type="button" class="btn-refresh" id="refresh-rooms-btn">🔄</button>
+          </div>
+          <div id="room-list" class="room-list">
+            <div class="room-list-empty">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Panel -->
+      <div class="panel hidden" id="settings-panel">
+        <h3 class="panel-title">⚙️ Account Settings</h3>
+        
+        <div class="settings-section">
+          <h4>Change Username</h4>
+          <!-- Added auth-form wrapper here -->
+          <div class="auth-form">
+            <div class="form-group">
+              <input type="text" class="form-input" id="new-username" placeholder="New username">
+            </div>
+            <div id="username-feedback" class="feedback"></div>
+            <button class="btn-primary" id="change-username-btn">Change Username</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h4>Change Password</h4>
+          <!-- Added auth-form wrapper here -->
+          <div class="auth-form">
+            <div class="form-group">
+              <label class="form-label">Old Password</label>
+              <div class="password-wrapper">
+                <input type="password" class="form-input" id="old-password" placeholder="Current password">
+                <button type="button" class="password-toggle" onclick="togglePassword('old-password', this)">👁️</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">New Password</label>
+              <div class="password-wrapper">
+                <input type="password" class="form-input" id="new-password" placeholder="New password">
+                <button type="button" class="password-toggle" onclick="togglePassword('new-password', this)">👁️</button>
+              </div>
+            </div>
+            <div id="password-feedback" class="feedback"></div>
+            <button class="btn-primary" id="change-password-btn">Change Password</button>
+            <button class="btn-link" id="settings-forgot-btn">Forgot password?</button>
+          </div>
+        </div>
+
+        <!-- Settings Forgot Password -->
+        <div class="settings-section hidden" id="settings-forgot-section">
+          <h4>🔑 Password Recovery</h4>
+          <div class="auth-form">
+            <div class="form-group">
+              <label class="form-label">Confirm your username</label>
+              <input type="text" class="form-input" id="settings-forgot-username" placeholder="Your username">
+            </div>
+            <div id="settings-forgot-feedback" class="feedback"></div>
+            <button class="btn-primary" id="settings-recover-btn">Recover & Change Password</button>
+          </div>
+        </div>
+
+        <div class="settings-section danger-zone">
+          <h4>🗑️ Delete Account</h4>
+          <p class="hint">This action is irreversible.</p>
+          <button class="btn-danger" id="delete-account-btn">Delete My Account</button>
+        </div>
+
+        <button class="btn-link" id="close-settings-btn">← Back to Home</button>
+      </div>
+
+      <!-- Delete Confirmation Modal -->
+      <div class="modal hidden" id="delete-modal">
+        <div class="modal-content auth-form">
+          <h3>🗑️ Delete Account</h3>
+          <div class="form-group">
+            <label class="form-label">Enter your password to confirm</label>
+            <div class="password-wrapper">
+              <input type="password" class="form-input" id="delete-password" placeholder="Password">
+              <button type="button" class="password-toggle" onclick="togglePassword('delete-password', this)">👁️</button>
+            </div>
+          </div>
+          <div id="delete-feedback" class="feedback"></div>
+          <div class="btn-group">
+            <button class="btn-secondary" id="cancel-delete-btn">Cancel</button>
+            <button class="btn-danger" id="confirm-delete-btn">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat View -->
+    <div class="container hidden" id="chat-view">
+      <div class="header">
+        <div style="display: flex; align-items: center;">
+          <h1>💬 Secure Chat</h1>
+          <span class="room-badge" id="room-badge">general</span>
+        </div>
+        <button class="btn-clear" id="exit-room-btn">Exit Room</button>
+      </div>
+
+      <div id="chat-box">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-state-icon">💬</div>
+          <div>No messages yet</div>
+          <div style="font-size: 0.85rem;">Send a message to start the conversation</div>
+          <div style="font-size: 0.75rem; color: #f97316; margin-top: 8px;">⚠️ Chat history is not saved. Messages disappear when you leave!</div>
+        </div>
+      </div>
+
+      <div class="input-area">
+        <input type="text" id="msg-input" placeholder="Type a message..." />
+        <button id="send-btn">Send</button>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.min.js"></script>
+    <script src="main.js?v=10"></script>
+  </body>
+</html>

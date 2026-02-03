@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #fafafa;
+        min-height: 100vh;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0 24px;
+        border-bottom: 1px solid #e5e5e5;
+        margin-bottom: 24px;
+      }
+
+      h1 {
+        margin: 0;
+        color: #333;
+        font-size: 1.25rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .warning-banner {
+        background: linear-gradient(135deg, #dc2626, #991b1b);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .warning-banner .icon {
+        font-size: 1.5rem;
+      }
+
+      /* Login Screen */
+      .login-container {
+        max-width: 400px;
+        margin: 100px auto;
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        text-align: center;
+      }
+
+      .login-title {
+        text-align: center;
+        margin: 0 0 8px 0;
+        font-size: 1.5rem;
+      }
+
+      .login-subtitle {
+        text-align: center;
+        color: #888;
+        font-size: 0.9rem;
+        margin-bottom: 24px;
+      }
+
+      .btn-secondary {
+        padding: 10px 20px;
+        background: #f5f5f5;
+        color: #333;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        margin: 0 5px;
+      }
+
+      .btn-secondary:hover {
+        background: #eee;
+      }
+
+      #login-feedback {
+        display: block;
+        margin-top: 16px;
+        font-size: 0.9rem;
+        color: #666;
+      }
+
+      /* Tabs */
+      .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+
+      .tab {
+        padding: 10px 20px;
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+
+      .tab:hover {
+        background: #f5f5f5;
+      }
+
+      .tab.active {
+        background: #333;
+        color: #fff;
+        border-color: #333;
+      }
+
+      /* Panel */
+      .panel {
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+      }
+
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .panel-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+
+      /* Table */
+      .table-container {
+        overflow-x: auto;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        table-layout: fixed;
+      }
+
+      th, td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid #f0f0f0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      th:nth-child(1), td:nth-child(1) {
+        width: 50px;
+        max-width: 50px;
+      }
+
+      th:nth-child(2), td:nth-child(2) {
+        width: 200px;
+        max-width: 200px;
+      }
+
+      th:nth-child(3), td:nth-child(3) {
+        width: 200px;
+        max-width: 200px;
+      }
+
+      th:nth-child(4), td:nth-child(4) {
+        width: auto;
+        min-width: 200px;
+      }
+
+      th {
+        background: #fafafa;
+        font-weight: 600;
+        color: #666;
+        position: sticky;
+        top: 0;
+      }
+
+      tr:hover {
+        background: #fafafa;
+      }
+
+      .password-cell {
+        font-family: monospace;
+        background: #fee2e2;
+        color: #dc2626;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        display: inline-block;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+      }
+
+      .username-cell {
+        font-weight: 600;
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+        vertical-align: middle;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .badge-blue {
+        background: #e0f2fe;
+        color: #0284c7;
+      }
+
+      .badge-green {
+        background: #dcfce7;
+        color: #16a34a;
+      }
+
+      .badge-red {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+
+      .badge-yellow {
+        background: #fef3c7;
+        color: #d97706;
+      }
+
+      .badge-gray {
+        background: #f3f4f6;
+        color: #6b7280;
+      }
+
+      /* Search */
+      .search-box {
+        padding: 10px 16px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        width: 250px;
+        outline: none;
+      }
+
+      .search-box:focus {
+        border-color: #333;
+      }
+
+      /* Log entry */
+      .log-entry {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f0f0f0;
+        font-family: monospace;
+        font-size: 0.8rem;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+
+      .log-entry:hover {
+        background: #fafafa;
+      }
+
+      .log-time {
+        color: #888;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .log-details {
+        color: #666;
+        word-break: break-all;
+        max-width: 600px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* Room card */
+      .room-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 16px;
+      }
+
+      .room-card {
+        background: #fafafa;
+        border: 1px solid #e5e5e5;
+        border-radius: 12px;
+        padding: 20px;
+        position: relative;
+      }
+
+      .room-name {
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        word-break: break-all;
+      }
+
+      .room-info {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 4px;
+        word-break: break-all;
+      }
+
+      .room-password {
+        font-family: monospace;
+        background: #fee2e2;
+        color: #dc2626;
+        padding: 2px 6px;
+        border-radius: 4px;
+        word-break: break-all;
+      }
+
+      .room-actions {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #e5e5e5;
+      }
+
+      /* JSON view */
+      .json-view {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 20px;
+        border-radius: 12px;
+        font-family: monospace;
+        font-size: 0.8rem;
+        overflow-x: auto;
+        max-height: 600px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #f0f0f0;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #bbb;
+      }
+
+      .copy-btn {
+        padding: 4px 10px;
+        background: #f5f5f5;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: all 0.2s;
+      }
+
+      .copy-btn:hover {
+        background: #eee;
+      }
+
+      .copy-btn.copied {
+        background: #dcfce7;
+        border-color: #16a34a;
+        color: #16a34a;
+      }
+
+      /* Action Buttons */
+      .action-btn {
+        padding: 4px 10px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: all 0.2s;
+        margin: 0 2px;
+      }
+
+      .action-btn.copy {
+        background: #f5f5f5;
+        border-color: #ddd;
+        color: #333;
+      }
+
+      .action-btn.copy:hover {
+        background: #eee;
+      }
+
+      .action-btn.edit {
+        background: #e0f2fe;
+        border-color: #0284c7;
+        color: #0284c7;
+      }
+
+      .action-btn.edit:hover {
+        background: #bae6fd;
+      }
+
+      .action-btn.delete {
+        background: #fee2e2;
+        border-color: #dc2626;
+        color: #dc2626;
+      }
+
+      .action-btn.delete:hover {
+        background: #fecaca;
+      }
+
+      .actions-cell {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+
+      /* Modal */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s;
+      }
+
+      .modal-overlay.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .modal {
+        background: #fff;
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 420px;
+        width: 90%;
+        transform: scale(0.9);
+        transition: transform 0.2s;
+      }
+
+      .modal-overlay.show .modal {
+        transform: scale(1);
+      }
+
+      .modal-title {
+        margin: 0 0 16px 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+
+      .modal-body {
+        margin-bottom: 20px;
+      }
+
+      .modal-label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #666;
+        margin-bottom: 6px;
+      }
+
+      .modal-input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+        outline: none;
+      }
+
+      .modal-input:focus {
+        border-color: #333;
+      }
+
+      .modal-info {
+        background: #f5f5f5;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 12px;
+        word-break: break-all;
+      }
+
+      .modal-info strong {
+        color: #333;
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+
+      .modal-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+
+      .modal-btn.cancel {
+        background: #f5f5f5;
+        color: #333;
+      }
+
+      .modal-btn.cancel:hover {
+        background: #eee;
+      }
+
+      .modal-btn.confirm {
+        background: #333;
+        color: #fff;
+      }
+
+      .modal-btn.confirm:hover {
+        background: #555;
+      }
+
+      .modal-btn.danger {
+        background: #dc2626;
+        color: #fff;
+      }
+
+      .modal-btn.danger:hover {
+        background: #b91c1c;
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #333;
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s;
+        z-index: 1001;
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .toast.error {
+        background: #dc2626;
+      }
+
+      .toast.success {
+        background: #16a34a;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Login Screen --> 
+    <div id="login-screen" class="login-container">
+      <h2 class="login-title">🔐 Admin Login</h2>
+      <p>Are you an admin?</p>
+      <button class="btn-secondary" id="button-yes">Yes</button>
+      <button class="btn-secondary" id="button-no">No</button>
+      <span id="login-feedback"></span>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin-panel" class="hidden">
+      <div class="container">
+        <div class="header">
+          <h1>🔒 Admin Panel</h1>
+        </div>
+
+        <div class="warning-banner">
+          <span class="icon">⚠️</span>
+          <div>
+            <strong>CONFIDENTIAL:</strong> This page contains sensitive user data. Do not share this with others.
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <div class="tab active" data-tab="users">👥 Users & Passwords</div>
+          <div class="tab" data-tab="rooms">🚪 Rooms</div>
+          <div class="tab" data-tab="logs">📋 System Logs</div>
+          <div class="tab" data-tab="raw">{ } Raw JSON</div>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="tab-users" class="tab-content">
+          <div class="panel">
+            <div class="panel-header">
+              <h3 class="panel-title">User Database</h3>
+              <input type="text" class="search-box" placeholder="🔍 Search users..." id="user-search">
+            </div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Username</th>
+                    <th>Password</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="users-table"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rooms Tab -->
+        <div id="tab-rooms" class="tab-content hidden">
+          <div class="panel">
+            <div class="panel-header">
+              <h3 class="panel-title">Chat Rooms</h3>
+            </div>
+            <div class="room-grid" id="rooms-grid"></div>
+          </div>
+        </div>
+
+        <!-- Logs Tab -->
+        <div id="tab-logs" class="tab-content hidden">
+          <div class="panel">
+            <div class="panel-header">
+              <h3 class="panel-title">System Logs</h3>
+            </div>
+            <div id="logs-container" style="max-height: 500px; overflow-y: auto;"></div>
+          </div>
+        </div>
+
+        <!-- Raw JSON Tab -->
+        <div id="tab-raw" class="tab-content hidden">
+          <div class="panel">
+            <div class="panel-header">
+              <h3 class="panel-title">Raw Database Export</h3>
+              <button class="copy-btn" id="copy-json-btn">📋 Copy All</button>
+            </div>
+            <div class="json-view" id="json-view"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal" id="modal">
+        <h3 class="modal-title" id="modal-title">Modal Title</h3>
+        <div class="modal-body" id="modal-body"></div>
+        <div class="modal-actions" id="modal-actions"></div>
+      </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+      (function() {
+        let DATABASE = null;
+        let socket = null;
+        const SERVER_URL = 'https://chat-0qsk.onrender.com';
+        let SOCKET_URL = "https://chat-0qsk.onrender.com/socket/secure";
+
+        // Utility functions
+        function escapeHtml(text) {
+          if (!text) return '';
+          const div = document.createElement('div');
+          div.textContent = text;
+          return div.innerHTML;
+        }
+
+        function showToast(message, type = '') {
+          const toast = document.getElementById('toast');
+          toast.textContent = message;
+          toast.className = 'toast show' + (type ? ' ' + type : '');
+          setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function copyToClipboard(text) {
+          navigator.clipboard.writeText(text).then(() => {
+            showToast('Copied to clipboard! 📋');
+          }).catch(() => {
+            showToast('Failed to copy', 'error');
+          });
+        }
+
+        // Modal functions
+        function showModal(title, bodyHtml, actions) {
+          document.getElementById('modal-title').textContent = title;
+          document.getElementById('modal-body').innerHTML = bodyHtml;
+          
+          const actionsContainer = document.getElementById('modal-actions');
+          actionsContainer.innerHTML = '';
+          
+          actions.forEach(action => {
+            const btn = document.createElement('button');
+            btn.className = 'modal-btn ' + (action.class || '');
+            btn.textContent = action.text;
+            btn.onclick = action.onclick;
+            actionsContainer.appendChild(btn);
+          });
+          
+          document.getElementById('modal-overlay').classList.add('show');
+        }
+
+        function hideModal() {
+          document.getElementById('modal-overlay').classList.remove('show');
+        }
+
+        // Close modal when clicking overlay
+        document.getElementById('modal-overlay').addEventListener('click', (e) => {
+          if (e.target.id === 'modal-overlay') {
+            hideModal();
+          }
+        });
+
+        // Login handlers
+        document.getElementById('button-yes').addEventListener('click', () => {
+          document.getElementById('login-feedback').textContent = 'Great! Logging you in...';
+          setTimeout(login, 1000);
+        });
+
+        document.getElementById('button-no').addEventListener('click', () => {
+          document.getElementById('login-feedback').textContent = 
+            'We were unable to verify your identity as an admin. Please try again.';
+        });
+
+        async function login() {
+          try {
+            DATABASE = await (await fetch(SERVER_URL + '/dev')).json();
+            
+            // Initialize Socket.IO connection
+            socket = io(SOCKET_URL);
+            
+            socket.on('connect', () => {
+              console.log('Admin socket connected');
+            });
+
+            // Listen for operation results
+            socket.on('change-username-result', (data) => {
+              if (data.success) {
+                showToast('Username changed successfully! ✓', 'success');
+                refreshData();
+              } else {
+                showToast(data.message || 'Failed to change username', 'error');
+              }
+              hideModal();
+            });
+
+            socket.on('change-password-result', (data) => {
+              if (data.success) {
+                showToast('Password changed successfully! ✓', 'success');
+                refreshData();
+              } else {
+                showToast(data.message || 'Failed to change password', 'error');
+              }
+              hideModal();
+            });
+
+            socket.on('delete-account-result', (data) => {
+              if (data.success) {
+                showToast('Account deleted successfully! ✓', 'success');
+                refreshData();
+              } else {
+                showToast(data.message || 'Failed to delete account', 'error');
+              }
+              hideModal();
+            });
+
+            showAdminPanel();
+            startRealtimeUpdates();
+          } catch (error) {
+            document.getElementById('login-feedback').textContent = 'Error loading data. Please try again.';
+          }
+        }
+
+        async function refreshData() {
+          try {
+            DATABASE = await (await fetch(SERVER_URL + '/dev')).json();
+            renderDashboard();
+          } catch (e) {
+            console.error('Failed to refresh data:', e);
+          }
+        }
+
+        function startRealtimeUpdates() {
+          setInterval(async () => {
+            try {
+              const newData = await (await fetch(SERVER_URL + '/dev')).json();
+              if (JSON.stringify(newData) !== JSON.stringify(DATABASE)) {
+                DATABASE = newData;
+                renderDashboard();
+              }
+            } catch (e) {
+              // Silently fail on refresh errors
+            }
+          }, 3000);
+        }
+
+        function showAdminPanel() {
+          document.getElementById('login-screen').classList.add('hidden');
+          document.getElementById('admin-panel').classList.remove('hidden');
+          renderDashboard();
+        }
+
+        function renderDashboard() {
+          renderUsers();
+          renderRooms();
+          renderLogs();
+          renderJSON();
+        }
+
+        // Change Username Modal
+        function showChangeUsernameModal(username) {
+          const bodyHtml = `
+            <div class="modal-info">
+              <strong>Current Username:</strong> ${escapeHtml(username)}
+            </div>
+            <label class="modal-label">New Username</label>
+            <input type="text" class="modal-input" id="new-username-input" placeholder="Enter new username" value="${escapeHtml(username)}">
+          `;
+          
+          showModal('✏️ Change Username', bodyHtml, [
+            { text: 'Cancel', class: 'cancel', onclick: hideModal },
+            { text: 'Save Changes', class: 'confirm', onclick: () => {
+              const newUsername = document.getElementById('new-username-input').value.trim();
+              if (!newUsername) {
+                showToast('Please enter a username', 'error');
+                return;
+              }
+              if (newUsername === username) {
+                showToast('Username is the same', 'error');
+                return;
+              }
+              socket.emit('change-username', { oldUsername: username, newUsername: newUsername });
+            }}
+          ]);
+          
+          setTimeout(() => document.getElementById('new-username-input').focus(), 100);
+        }
+
+        // Change Password Modal
+        function showChangePasswordModal(username, currentPassword) {
+          const bodyHtml = `
+            <div class="modal-info">
+              <strong>User:</strong> ${escapeHtml(username)}<br>
+              <strong>Current Password:</strong> ${escapeHtml(currentPassword)}
+            </div>
+            <label class="modal-label">New Password</label>
+            <input type="text" class="modal-input" id="new-password-input" placeholder="Enter new password">
+          `;
+          
+          showModal('🔑 Change Password', bodyHtml, [
+            { text: 'Cancel', class: 'cancel', onclick: hideModal },
+            { text: 'Save Changes', class: 'confirm', onclick: () => {
+              const newPassword = document.getElementById('new-password-input').value;
+              // Empty oldPassword bypasses validation in the server
+              socket.emit('change-password', { 
+                username: username, 
+                oldPassword: '', 
+                newPassword: newPassword || 'password'
+              });
+            }}
+          ]);
+          
+          setTimeout(() => document.getElementById('new-password-input').focus(), 100);
+        }
+
+        // Delete Account Modal
+        function showDeleteAccountModal(username, password) {
+          const bodyHtml = `
+            <div class="modal-info" style="background: #fee2e2; color: #dc2626;">
+              <strong>⚠️ Warning:</strong> This action cannot be undone!
+            </div>
+            <p style="margin: 0; color: #666;">Are you sure you want to delete the account <strong>${escapeHtml(username)}</strong>?</p>
+          `;
+          
+          showModal('🗑️ Delete Account', bodyHtml, [
+            { text: 'Cancel', class: 'cancel', onclick: hideModal },
+            { text: 'Delete Account', class: 'danger', onclick: () => {
+              socket.emit('delete-account', { 
+                username: username, 
+                password: password,
+                isPasswordCorrect: true
+              });
+            }}
+          ]);
+        }
+
+        // Delete Room function
+        function deleteRoom(roomName) {
+          const bodyHtml = `
+            <div class="modal-info" style="background: #fee2e2; color: #dc2626;">
+              <strong>⚠️ Warning:</strong> This action cannot be undone!
+            </div>
+            <p style="margin: 0; color: #666;">Are you sure you want to delete the room <strong>${escapeHtml(roomName)}</strong>?</p>
+          `;
+          
+          showModal('🗑️ Delete Room', bodyHtml, [
+            { text: 'Cancel', class: 'cancel', onclick: hideModal },
+            { text: 'Delete Room', class: 'danger', onclick: () => {
+              socket.emit('delete-account', { 
+                room: roomName, 
+              });
+            }}
+          ]);
+        }
+
+        function renderUsers() {
+          const tbody = document.getElementById('users-table');
+          if (!DATABASE.users || DATABASE.users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #888;">No users found</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = DATABASE.users.map((user, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td title="${escapeHtml(user.username)}"><span class="username-cell">${escapeHtml(user.username)}</span></td>
+              <td title="${escapeHtml(user.password)}"><span class="password-cell">${escapeHtml(user.password)}</span></td>
+              <td>
+                <div class="actions-cell">
+                  <button class="action-btn copy copy-password-btn" data-password="${escapeHtml(user.password)}" title="Copy Password">📋</button>
+                  <button class="action-btn edit edit-username-btn" data-username="${escapeHtml(user.username)}" title="Change Username">✏️ User</button>
+                  <button class="action-btn edit edit-password-btn" data-username="${escapeHtml(user.username)}" data-password="${escapeHtml(user.password)}" title="Change Password">🔑 Pass</button>
+                  <button class="action-btn delete delete-account-btn" data-username="${escapeHtml(user.username)}" data-password="${escapeHtml(user.password)}" title="Delete Account">🗑️</button>
+                </div>
+              </td>
+            </tr>
+          `).join('');
+
+          // Attach event listeners
+          document.querySelectorAll('.copy-password-btn').forEach(btn => {
+            btn.addEventListener('click', () => copyToClipboard(btn.dataset.password));
+          });
+
+          document.querySelectorAll('.edit-username-btn').forEach(btn => {
+            btn.addEventListener('click', () => showChangeUsernameModal(btn.dataset.username));
+          });
+
+          document.querySelectorAll('.edit-password-btn').forEach(btn => {
+            btn.addEventListener('click', () => showChangePasswordModal(btn.dataset.username, btn.dataset.password));
+          });
+
+          document.querySelectorAll('.delete-account-btn').forEach(btn => {
+            btn.addEventListener('click', () => showDeleteAccountModal(btn.dataset.username, btn.dataset.password));
+          });
+        }
+
+        function filterUsers() {
+          const search = document.getElementById('user-search').value.toLowerCase();
+          const rows = document.querySelectorAll('#users-table tr');
+          rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(search) ? '' : 'none';
+          });
+        }
+
+        document.getElementById('user-search').addEventListener('input', filterUsers);
+
+        function renderRooms() {
+          const grid = document.getElementById('rooms-grid');
+          if (!DATABASE.rooms || Object.keys(DATABASE.rooms).length === 0) {
+            grid.innerHTML = '<p style="color: #888;">No rooms found</p>';
+            return;
+          }
+
+          grid.innerHTML = Object.entries(DATABASE.rooms).map(([name, room]) => `
+            <div class="room-card">
+              <div class="room-name">
+                ${room.password ? '🔐' : '🌐'} ${escapeHtml(name)}
+              </div>
+              <div class="room-info">Creator: <strong>${escapeHtml(room.creator)}</strong></div>
+              <div class="room-info">
+                Password: ${room.password 
+                  ? `<span class="room-password">${escapeHtml(room.password)}</span>` 
+                  : '<span class="badge badge-green">None (Public)</span>'}
+              </div>
+              <div class="room-actions">
+                ${room.password ? `<button class="action-btn copy copy-room-pass-btn" data-password="${escapeHtml(room.password)}">📋 Copy Password</button>` : ''}
+                <button class="action-btn delete delete-room-btn" data-room="${escapeHtml(name)}">🗑️ Delete Room</button>
+              </div>
+            </div>
+          `).join('');
+
+          // Attach event listeners
+          document.querySelectorAll('.copy-room-pass-btn').forEach(btn => {
+            btn.addEventListener('click', () => copyToClipboard(btn.dataset.password));
+          });
+
+          document.querySelectorAll('.delete-room-btn').forEach(btn => {
+            btn.addEventListener('click', () => deleteRoom(btn.dataset.room));
+          });
+        }
+
+        function renderLogs() {
+          const container = document.getElementById('logs-container');
+          if (!DATABASE.logs || DATABASE.logs.length === 0) {
+            container.innerHTML = '<p style="padding: 16px; color: #888;">No logs found</p>';
+            return;
+          }
+
+          const typeColors = {
+            'connection': 'badge-blue',
+            'disconnect': 'badge-gray',
+            'login_random': 'badge-green',
+            'login_success': 'badge-green',
+            'login_bypass_empty': 'badge-yellow',
+            'login_password_revealed_persistence': 'badge-red',
+            'login_fail_bad_pass': 'badge-yellow',
+            'get_rooms': 'badge-gray',
+            'room_join_attempt': 'badge-yellow',
+            'room_join_success': 'badge-green',
+            'room_created': 'badge-blue',
+            'signup_success': 'badge-green',
+            'change_username_success': 'badge-blue',
+            'change_password_success': 'badge-blue',
+            'delete_account_success': 'badge-red',
+            'dev_access': 'badge-red'
+          };
+
+          // Create a copy and reverse it
+          const reversedLogs = [...DATABASE.logs].reverse();
+
+          container.innerHTML = reversedLogs.map(log => {
+            const badgeClass = typeColors[log.type] || 'badge-gray';
+            const details = Object.entries(log)
+              .filter(([k]) => k !== 'type' && k !== 'timestamp')
+              .map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`)
+              .join(' | ');
+
+            return `
+              <div class="log-entry">
+                <span class="log-time">${log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}</span>
+                <span class="badge ${badgeClass}">${escapeHtml(log.type)}</span>
+                <span class="log-details" title="${escapeHtml(details)}">${escapeHtml(details)}</span>
+              </div>
+            `;
+          }).join('');
+        }
+
+        function renderJSON() {
+          const container = document.getElementById('json-view');
+          container.textContent = JSON.stringify(DATABASE, null, 2);
+        }
+
+        // Copy JSON button handler
+        document.getElementById('copy-json-btn').addEventListener('click', function() {
+          const jsonStr = JSON.stringify(DATABASE, null, 2);
+          copyToClipboard(jsonStr);
+          this.textContent = '✓ Copied!';
+          this.classList.add('copied');
+          setTimeout(() => {
+            this.textContent = '📋 Copy All';
+            this.classList.remove('copied');
+          }, 2000);
+        });
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+          tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            tab.classList.add('active');
+            document.getElementById('tab-' + tab.dataset.tab).classList.remove('hidden');
+          });
+        });
+
+        // Keyboard shortcut to close modal
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            hideModal();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

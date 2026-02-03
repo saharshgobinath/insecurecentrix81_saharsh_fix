@@ -1,0 +1,16 @@
+{
+  "name": "chat-backend",
+  "version": "1.0.0",
+  "description": "Serves insecure and secure chat",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "express": "^5.2.1",
+    "mongoose": "9.0.1",
+    "socket.io": "^4.8.1",
+    "axios": "1.13.2"
+  }
+}
