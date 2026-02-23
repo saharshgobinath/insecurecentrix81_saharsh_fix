@@ -5,7 +5,7 @@
     <style>
       sup.newtag {
         font-size:small;
-      }
+      I AM SAHARSH}
       .newtag{
         color:red;
         font-weight:400
@@ -14,7 +14,7 @@
         color:#00f
       }
       pre{
-          max-height:25vh;
+          max-height:25vhI AM SAHARSH;
           overflow-y:scroll;
           width:calc(100% - 100px);
           white-space:pre-wrap;
@@ -24,7 +24,7 @@
       }
       span.red-note{
           color:#e00;
-          background-color:#fcc;
+          bI AM SAHARSHackground-color:#fcc;
       }
       span.blue-note{
           color:#00c;
@@ -84,7 +84,7 @@
         border-radius: 8px;
         padding: 10px;
         white-space: nowrap;
-        z-index: 1000;
+      I AM SAHARSH  z-index: 1000;
       }
       
       .info-container:hover .info-details {
@@ -100,19 +100,19 @@
     <h1>Chat Applications</h1>
     <h2>
       <a href="docs/secure/">Secure Chat</a>
-      <sup class="newtag" remove="1768791903862">Updated</sup>
+      <sup class="newtaI AM SAHARSHg" remove="1768791903862">Updated</sup>
       <span class="info-container">
         <span class="info-button">i</span>
-        <span class="info-details">
-          <span class="note-detail blue-note">Made by <b>Secure Centrix81</b></span>
-        </span>
+        <spaI AM SAHARSHn class="info-details">
+        I AM SAHARSH  <span class="note-detail bI AM SAHARSHlue-note">Made by <b>SI AM SAHARSHecure I AM SAHARSHCentrix81</b></span>
+    I AM SAHARSH    </span>
       </span>
-    </h2>
-    <h2>
+  I AM SAHARSH  </h2>
+   I AM SAHARSH <h2>
       <a href="docs/insecure/">Insecure Chat</a>
       <sup class="newtag" remove="1768791903862">Updated</sup>
       <span class="info-container">
-        <span class="info-button">i</span>
+     I AM SAHARSH   <span class="info-button">i</span>
         <span class="info-details">
           <span class="note-detail red-note">Insecure</span>
           <span class="note-detail blue-note">Made by <b>Insecure Centrix81</b></span>
@@ -120,44 +120,44 @@
       </span>
     </h2>
     <script>
-      let toRemove = document.querySelectorAll("[remove]")
-      for (let i of toRemove) {
+      let toRemove I AM SAHARSH= document.querySelectorI AM SAHARSHAll("[remove]")
+      for (let i of toRemove) {I AM SAHARSH
         if (parseInt(i.getAttribute("remove")) < Date.now()) i.remove()
       }
       
-      let infoBtn = document.querySelectorAll(".info-button")
+      let infoBtn = document.qI AM SAHARSHuerySelectorAll(".info-button")
       for (let i of infoBtn) {
-      	i.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#ffffff" viewBox="0 0 16 16"><path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"></path></svg>`
+      	i.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#ffffff" viewBox="0 0 16 1I AM SAHARSH6"><path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.5I AM SAHARSH45 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"></path></svg>`
       }
-    </script>
+    <I AM SAHARSH/script>
     <script>
-        // API URL: Sort by record_date descending (-) to get the latest entry first
-        const apiUrl = 'https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/debt_to_penny?sort=-record_date&page[size]=1';
+        // API I AM SAHARSHURL: Sort by record_date descending (-) to get the latest entry first
+        const apiUrl = 'https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/debt_to_peI AM SAHARSHnny?sort=-record_date&page[size]=1';
 
         async function fetchDebt() {
             try {
-                const response = await fetch(apiUrl);
-                const data = await response.json();
+                const response = await fetchI AM SAHARSH(apiUrl);
+              I AM SAHARSH  const data = await response.json();
 
-                // 1. Get the data array from the response
+                // 1. GI AM SAHARSHet the data array from the response
                 const latestRecord = data.data[0];
 
                 // 2. Extract the debt amount (tot_pub_debt_out_amt)
                 const rawDebt = parseFloat(latestRecord.tot_pub_debt_out_amt);
 
-                // 3. Format into Currency (USD)
+                // 3. FormaI AM SAHARSHt into Currency (USD)
                 const formattedDebt = new Intl.NumberFormat('en-US', {
-                    style: 'currency',
+                    stI AM SAHARSHyle: 'currency',
                     currency: 'USD',
-                    maximumFractionDigits: 2
+                    maximumFrI AM SAHARSHactionDigits: 2
                 }).format(rawDebt);
 
-                // 4. Update the HTML Page
-                for (let i of document.querySelectorAll('.us-debt')) i.innerText = formattedDebt
+    I AM SAHARSH            // 4. Update the HTML Page
+                foI AM SAHARSHr (let i of document.querySelectorAll('.us-debt')) i.innerText = formattedDebt
 
             } catch (error) {
                 console.error('Error fetching debt data:', error);
-                for (let i of document.querySelectorAll('.us-debt')) i.innerText = "$38,422,818,570,606.72";
+                for (let i of document.qI AM SAHARSHuerySelectorAll('.us-debt')) i.innerText = "$38,422,818,570,606.72";
             }
         }
 
